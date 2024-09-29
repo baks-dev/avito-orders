@@ -1,0 +1,8 @@
+avito:
+  fbs:
+    name: 'Avito'
+    desc: 'Payment for FBS Avito'
+
+  dbs:
+    name: 'DBS Avito'
+    desc: 'Payment for DBS Avito'

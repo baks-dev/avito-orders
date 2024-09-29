@@ -1,0 +1,42 @@
+avito:
+
+  fbs:
+
+    name: 'Avito'
+    desc: 'Avito user'
+
+    section:
+      contact:
+        name: 'Contact details'
+        desc: 'Data for communication between store managers and customers.'
+
+        field:
+
+          name:
+            name: 'Contact person'
+            desc: 'User name'
+
+
+  dbs:
+
+    name: 'DBS Avito'
+    desc: 'DBS Avito user'
+
+    section:
+      contact:
+        name: 'Contact details'
+        desc: 'Data for communication between store managers and customers.'
+
+        field:
+
+          name:
+            name: 'Recipient'
+            desc: 'User name'
+
+          email:
+            name: 'Contact Email'
+            desc: 'Contact email for communication'
+
+          phone:
+            name: 'Contact phone'
+            desc: 'Contact telephone number'

@@ -1,0 +1,17 @@
+avito:
+  fbs:
+    name: 'Склад Avito'
+    desc: 'Курьерская доставка Avito'
+
+    address:
+      name: 'Адрес ПВЗ Avito'
+      desc: 'Адрес пункта выдачи заказов Avito выбранный клиентом'
+
+
+  dbs:
+    name: 'Доставка клиенту Avito'
+    desc: 'Доставка клиенту Avito'
+
+    address:
+      name: 'Адрес клиента'
+      desc: 'Адрес доставки заказа клиенту Avito'

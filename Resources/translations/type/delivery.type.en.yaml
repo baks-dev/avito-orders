@@ -1,0 +1,17 @@
+avito:
+  fbs:
+    name: 'Avito warehouse'
+    desc: 'Avito courier delivery'
+
+    address:
+      name: 'Avito pick-up point address'
+      desc: 'Address of the Avito order pick-up point selected by the client'
+
+
+  dbs:
+    name: 'Delivery to Avito client'
+    desc: 'Delivery to Avito client'
+
+    address:
+      name: 'Client address'
+      desc: 'Delivery address of the order to the Avito client'
