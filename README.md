@@ -11,6 +11,24 @@
 $ composer require baks-dev/avito-orders
 ```
 
+Для работы с заказами выполнить комманду для добавления типа профиля и доставку:
+
+* #### FBS (доставка на склад Avito)
+
+``` bash
+php bin/console baks:users-profile-type:avito-fbs
+php bin/console baks:payment:avito-fbs
+php bin/console baks:delivery:avito-fbs
+```
+
+* #### DBS (доставка клиенту Avito)
+
+``` bash
+php bin/console baks:users-profile-type:avito-dbs
+php bin/console baks:payment:avito-dbs
+php bin/console baks:delivery:avito-dbs
+```
+
 Тесты
 
 ``` bash
