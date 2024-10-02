@@ -46,7 +46,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
     name: 'baks:users-profile-type:avito-fbs',
-    description: 'Добавляет тип профилей пользователя FBS Avito'
+    description: 'Добавляет тип профилей пользователя FBS Avito',
+    aliases: ['baks:profile:avito-fbs']
 )]
 class UpgradeProfileTypeFbsAvitoCommand extends Command
 {
