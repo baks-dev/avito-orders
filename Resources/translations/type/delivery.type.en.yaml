@@ -1,6 +1,6 @@
 avito:
   fbs:
-    name: 'Avito warehouse'
+    name: 'Avito'
     desc: 'Avito courier delivery'
 
     address:

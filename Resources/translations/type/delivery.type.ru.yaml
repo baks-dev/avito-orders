@@ -1,6 +1,6 @@
 avito:
   fbs:
-    name: 'Склад Avito'
+    name: 'Avito'
     desc: 'Курьерская доставка Avito'
 
     address:

@@ -2,7 +2,7 @@ avito:
 
   fbs:
 
-    name: 'Avito Склад'
+    name: 'Avito'
     desc: 'Пользователь Avito'
 
     section:
