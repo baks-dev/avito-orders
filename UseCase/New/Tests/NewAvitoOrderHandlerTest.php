@@ -35,7 +35,14 @@ use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\UseCase\Admin\Delete\Tests\DeleteOrderTest;
 use BaksDev\Payment\Type\Id\PaymentUid;
+use BaksDev\Products\Product\Repository\ProductDetail\ProductDetailByConstInterface;
+use BaksDev\Products\Product\Repository\ProductDetail\ProductDetailByConstResult;
 use BaksDev\Products\Product\Type\Event\ProductEventUid;
+use BaksDev\Products\Product\Type\Id\ProductUid;
+use BaksDev\Products\Product\Type\Offers\ConstId\ProductOfferConst;
+use BaksDev\Products\Product\Type\Offers\Variation\ConstId\ProductVariationConst;
+use BaksDev\Products\Product\Type\Offers\Variation\Modification\ConstId\ProductModificationConst;
+use BaksDev\Products\Product\UseCase\Admin\NewEdit\Tests\ProductsProductNewAdminUseCaseTest;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
@@ -49,6 +56,7 @@ use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Attribute\When;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use BaksDev\Products\Product\UseCase\Admin\Invariable\Tests\ProductInvariableAdminUseCaseTest;
 
 #[When(env: 'test')]
 #[Group('avito-orders')]
@@ -64,6 +72,13 @@ final class NewAvitoOrderHandlerTest extends KernelTestCase
 
         NewUserProfileHandlerTest::tearDownAfterClass();
         DeleteOrderTest::tearDownAfterClass();
+
+
+        /** Создаем тестовый продукт */
+        ProductsProductNewAdminUseCaseTest::setUpBeforeClass();
+        new ProductsProductNewAdminUseCaseTest('')->testUseCase();
+        ProductInvariableAdminUseCaseTest::setUpBeforeClass();
+        new ProductInvariableAdminUseCaseTest('')->testUseCase();
     }
 
     public function testUseCase(): void
@@ -74,7 +89,7 @@ final class NewAvitoOrderHandlerTest extends KernelTestCase
 
         $newAvitoOrderDTO
             ->getInvariable()
-            ->setNumber('1234567')
+            ->setNumber('A-1234567')
             ->setUsr(new UserUid())
             ->setProfile(new UserProfileUid());
 
@@ -94,10 +109,33 @@ final class NewAvitoOrderHandlerTest extends KernelTestCase
             ->setLatitude(new GpsLatitude())
             ->setLongitude(new GpsLongitude());
 
+
+        $ProductDetailByConstRepository = self::getContainer()->get(ProductDetailByConstInterface::class);
+
+
+        /**
+         * Находим идентификаторы тестового продукта
+         * @var ProductDetailByConstInterface $ProductDetailByConstRepository
+         */
+        $ProductDetailByConstResult = $ProductDetailByConstRepository
+            ->product(new ProductUid(ProductUid::TEST))
+            ->offerConst(new ProductOfferConst(ProductOfferConst::TEST))
+            ->variationConst(new ProductVariationConst(ProductVariationConst::TEST))
+            ->modificationConst(new ProductModificationConst(ProductModificationConst::TEST))
+            ->findResult();
+
+        if(false === ($ProductDetailByConstResult instanceof ProductDetailByConstResult))
+        {
+            return;
+        }
+
         $newAvitoOrderDTO
             ->addProduct(new NewAvitoOrderProductDTO()
                 ->setArticle('test')
-                ->setProduct(new ProductEventUid()),
+                ->setProduct(new ProductEventUid())
+                ->setOffer($ProductDetailByConstResult->getProductOfferUid())
+                ->setVariation($ProductDetailByConstResult->getProductVariationUid())
+                ->setModification($ProductDetailByConstResult->getProductModificationUid())
             );
 
         $newAvitoOrderDTO
@@ -108,14 +146,10 @@ final class NewAvitoOrderHandlerTest extends KernelTestCase
             ->getPosting()
             ->setValue('test');
 
+
+        /** @var NewAvitoOrderHandler $handle */
         $handle = $NewAvitoOrderHandler->handle($newAvitoOrderDTO);
 
         self::assertInstanceOf(Order::class, $handle);
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        NewUserProfileHandlerTest::tearDownAfterClass();
-        DeleteOrderTest::tearDownAfterClass();
     }
 }

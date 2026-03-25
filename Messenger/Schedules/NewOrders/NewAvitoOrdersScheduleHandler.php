@@ -94,8 +94,8 @@ final readonly class NewAvitoOrdersScheduleHandler
         private FieldValueFormInterface $FieldValueRepository,
         private FieldByDeliveryChoiceInterface $deliveryFields,
         private CurrentDeliveryEventInterface $currentDeliveryEvent,
+        private ExistsOrderNumberInterface $ExistsOrderNumberRepository,
         private PickupByGeolocationInterface $pickupByGeolocation,
-        private ExistsOrderNumberInterface $existsOrderNumber,
     ) {}
 
     public function __invoke(NewAvitoOrdersScheduleMessage $message): void
@@ -120,7 +120,7 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $Deduplicator = $this->Deduplicator
                 ->namespace('avito-orders')
-                ->expiresAfter(NewOrdersSchedule::INTERVAL)
+                ->expiresAfter($message->getInterval() ?: NewOrdersSchedule::INTERVAL)
                 ->deduplication([self::class, (string) $avitoTokenUid]);
 
             if($Deduplicator->isExecuted())
@@ -137,6 +137,8 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $orders = $this->AvitoGetOrdersInfoRequest
                 ->forTokenIdentifier($avitoTokenUid)
+                ->interval($message->getInterval() ?: NewOrdersSchedule::INTERVAL)
+                ->getNew()
                 ->findAll();
 
             if(false === $orders || false === $orders->valid())
@@ -178,11 +180,12 @@ final readonly class NewAvitoOrdersScheduleHandler
                 continue;
             }
 
+
             /**
              * Пропускаем, если заказ уже существует в системе
              */
 
-            $isExists = $this->existsOrderNumber->isExists($avitoGetOrdersInfoDTO->getPostingNumber());
+            $isExists = $this->ExistsOrderNumberRepository->isExists($avitoGetOrdersInfoDTO->getPostingNumber());
 
             if($isExists)
             {
@@ -322,7 +325,7 @@ final readonly class NewAvitoOrdersScheduleHandler
              * Способ доставки Avito
              */
 
-            $OrderDeliveryDTO = $avitoOrderDTO->getUsr()->getDelivery();
+            $orderDeliveryDTO = $avitoOrderDTO->getUsr()->getDelivery();
 
             $delivery_type = match ($avitoGetOrdersInfoDTO->getType())
             {
@@ -334,7 +337,7 @@ final readonly class NewAvitoOrdersScheduleHandler
             $delivery = new DeliveryUid($delivery_type);
             $address = $avitoGetOrdersInfoDTO->getAddress();
 
-            $OrderDeliveryDTO
+            $orderDeliveryDTO
                 ->setDelivery($delivery)
                 ->setDeliveryDate($avitoGetOrdersInfoDTO->getDeliveryDate());
 
@@ -356,7 +359,7 @@ final readonly class NewAvitoOrdersScheduleHandler
                 $longitude = $avitoAddressResult->getLongitude();
                 $address = $avitoAddressResult->getAddress();
 
-                $OrderDeliveryDTO
+                $orderDeliveryDTO
                     ->setAddress($address)
                     ->setLatitude($latitude)
                     ->setLongitude($longitude);
@@ -379,7 +382,7 @@ final readonly class NewAvitoOrdersScheduleHandler
                 $latitude = $userProfileByIdResult->getLatitude();
                 $longitude = $userProfileByIdResult->getLongitude();
 
-                $OrderDeliveryDTO
+                $orderDeliveryDTO
                     ->setAddress($address)
                     ->setLatitude($latitude)
                     ->setLongitude($longitude);
@@ -475,62 +478,62 @@ final readonly class NewAvitoOrdersScheduleHandler
 
     private function fillDelivery(NewAvitoOrderDTO $command, AvitoGetOrdersInfoDTO $avitoGetOrdersInfoDTO): void
     {
-        $OrderDeliveryDTO = $command->getUsr()->getDelivery();
+        $orderDeliveryDTO = $command->getUsr()->getDelivery();
 
 
         /**
          * Определяем свойства доставки и присваиваем адрес
          */
 
-        $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
+        $fields = $this->deliveryFields->fetchDeliveryFields($orderDeliveryDTO->getDelivery());
 
 
         /** Указываем адрес доставки */
 
         if($fields)
         {
-            $address_field = array_filter($fields, static function($v) {
+            $addressField = array_filter($fields, static function($v) {
                 /** @var InputField $InputField */
                 return $v->getType()->getType() === 'address_field';
             });
 
-            $address_field = current($address_field);
+            $addressField = current($addressField);
 
-            if($address_field)
+            if($addressField)
             {
-                $OrderDeliveryFieldDTO = new NewAvitoOrderDeliveryFieldDTO();
-                $OrderDeliveryFieldDTO->setField($address_field);
-                $OrderDeliveryFieldDTO->setValue($OrderDeliveryDTO->getAddress());
-                $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
+                $orderDeliveryFieldDTO = new NewAvitoOrderDeliveryFieldDTO();
+                $orderDeliveryFieldDTO->setField($addressField);
+                $orderDeliveryFieldDTO->setValue($orderDeliveryDTO->getAddress());
+                $orderDeliveryDTO->addField($orderDeliveryFieldDTO);
             }
 
             /** При самовывозе указываем ПВЗ */
             if($avitoGetOrdersInfoDTO->getType() === 'cnc')
             {
-                $contacts_region = array_filter($fields, static function($v) {
+                $contactsRegion = array_filter($fields, static function($v) {
                     /** @var InputField $InputField */
                     return $v->getType()->getType() === 'contacts_region_type';
                 });
 
-                $contacts_field = current($contacts_region);
+                $contactsField = current($contactsRegion);
 
-                if($contacts_field)
+                if($contactsField)
                 {
-                    $OrderDeliveryFieldDTO = new NewAvitoOrderDeliveryFieldDTO();
-                    $OrderDeliveryFieldDTO->setField($contacts_field);
+                    $orderDeliveryFieldDTO = new NewAvitoOrderDeliveryFieldDTO();
+                    $orderDeliveryFieldDTO->setField($contactsField);
 
                     /** Определяем по геолокации ПВЗ */
-                    $PickupByGeolocationDTO = $this->pickupByGeolocation
-                        ->latitude($OrderDeliveryDTO->getLatitude())
-                        ->longitude($OrderDeliveryDTO->getLongitude())
+                    $pickupByGeolocationDTO = $this->pickupByGeolocation
+                        ->latitude($orderDeliveryDTO->getLatitude())
+                        ->longitude($orderDeliveryDTO->getLongitude())
                         ->execute();
 
-                    if($PickupByGeolocationDTO)
+                    if($pickupByGeolocationDTO)
                     {
-                        $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
+                        $orderDeliveryFieldDTO->setValue((string) $pickupByGeolocationDTO->getId());
                     }
 
-                    $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
+                    $orderDeliveryDTO->addField($orderDeliveryFieldDTO);
                 }
             }
         }
@@ -540,18 +543,20 @@ final readonly class NewAvitoOrdersScheduleHandler
          * Присваиваем активное событие доставки
          */
 
-        $DeliveryEventUid = $this->currentDeliveryEvent
-            ->forDelivery($OrderDeliveryDTO->getDelivery())
+        $deliveryEventUid = $this->currentDeliveryEvent
+            ->forDelivery($orderDeliveryDTO->getDelivery())
             ->getId();
 
-        if(false === $DeliveryEventUid instanceof DeliveryEventUid)
+        if(false === $deliveryEventUid instanceof DeliveryEventUid)
         {
             throw new InvalidArgumentException(
-                sprintf('Способ доставки не найден! Выполните комманду Upgrade типа %s : ', $OrderDeliveryDTO->getDelivery()),
+                sprintf(
+                    'Способ доставки не найден! Выполните комманду Upgrade типа %s : ',
+                    $orderDeliveryDTO->getDelivery()
+                ),
             );
         }
 
-        $OrderDeliveryDTO->setEvent($DeliveryEventUid);
-
+        $orderDeliveryDTO->setEvent($deliveryEventUid);
     }
 }

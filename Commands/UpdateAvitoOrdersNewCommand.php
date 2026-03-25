@@ -1,18 +1,17 @@
 <?php
-
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
- *  
+ * Copyright 2026.  Baks.dev <admin@baks.dev>
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is furnished
  *  to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in all
  *  copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,6 +20,8 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
+
+declare(strict_types=1);
 
 namespace BaksDev\Avito\Orders\Commands;
 
@@ -37,14 +38,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'baks:avito-orders:new',
-    description: 'Получаем "НОВЫЕ" заказы Avito')
-]
-class UpdateAvitoOrdersNewCommand extends Command
+    description: 'Получает новые заказы Avito'
+)]
+final class UpdateAvitoOrdersNewCommand extends Command
 {
     private SymfonyStyle $io;
 
     public function __construct(
-        private readonly AllProfilesByActiveTokenInterface $allProfileToken,
+        private readonly AllProfilesByActiveTokenInterface $AllProfilesByActiveTokenRepository,
         private readonly MessageDispatchInterface $messageDispatch,
     )
     {
@@ -55,16 +56,15 @@ class UpdateAvitoOrdersNewCommand extends Command
     {
         $this->io = new SymfonyStyle($input, $output);
 
-        /**
-         * Получаем активные токены авторизации профилей Wildberries
-         */
-        $profiles = $this->allProfileToken
+        /** Получаем активные токены авторизации профилей Avito */
+        $profiles = $this->AllProfilesByActiveTokenRepository
             ->onlyActiveToken()
             ->findAll();
 
         $profiles = iterator_to_array($profiles);
 
         $helper = $this->getHelper('question');
+
 
         /**
          * Интерактивная форма списка профилей
@@ -99,7 +99,7 @@ class UpdateAvitoOrdersNewCommand extends Command
 
 
         /**
-         * Выполняем все с возможностью асинхронно в очереди
+         * Выполняем все
          */
 
         if($key === '+' || $key === '0' || $key === 'Все')
@@ -110,7 +110,6 @@ class UpdateAvitoOrdersNewCommand extends Command
                 $this->update($profile, $key === '+');
             }
 
-            $this->io->success('Заказы успешно обновлены');
             return Command::SUCCESS;
         }
 
@@ -119,21 +118,21 @@ class UpdateAvitoOrdersNewCommand extends Command
          * Выполняем определенный профиль
          */
 
-        $UserProfileUid = null;
+        $userProfileUid = null;
 
         foreach($profiles as $profile)
         {
             if($profile->getAttr().sprintf(' (%s)', $profile) === $questions[$key])
             {
                 /* Присваиваем профиль пользователя */
-                $UserProfileUid = $profile;
+                $userProfileUid = $profile;
                 break;
             }
         }
 
-        if($UserProfileUid)
+        if($userProfileUid)
         {
-            $this->update($UserProfileUid);
+            $this->update($userProfileUid);
 
             $this->io->success('Заказы успешно обновлены');
             return Command::SUCCESS;
@@ -148,12 +147,11 @@ class UpdateAvitoOrdersNewCommand extends Command
     {
         $this->io->note(sprintf('Обновляем новые заказы профиля %s', $profile->getAttr()));
 
-        $NewAvitoOrdersScheduleMessage = new NewAvitoOrdersScheduleMessage($profile)
+        $newAvitoOrdersScheduleMessage = new NewAvitoOrdersScheduleMessage($profile, '1 day')
             ->disableDeduplicator();
 
-        /* Отправляем сообщение в шину профиля */
         $this->messageDispatch->dispatch(
-            message: $NewAvitoOrdersScheduleMessage,
+            message: $newAvitoOrdersScheduleMessage,
             transport: $async === true ? (string) $profile : null,
         );
     }

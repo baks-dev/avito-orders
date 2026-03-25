@@ -39,6 +39,8 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
 
     private DateInterval $interval;
 
+    private ?string $status = null;
+
     public function interval(DateInterval|string|null $interval): self
     {
         if(empty($interval))
@@ -59,12 +61,41 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
         return $this;
     }
 
+
+    /** Вызываем метод, если необходимо найти только НОВЫЕ заказы */
+    public function getNew(): self
+    {
+        $this->status = 'on_confirmation';
+        return $this;
+    }
+
+
+    /** Вызываем метод, если необходимо найти только отменённые заказы */
+    public function getCanceled(): self
+    {
+        $this->status = 'canceled';
+        return $this;
+    }
+
+
     /**
      * Получение информации по заказам
      *
      * dateFrom int - Метка времени, с момента которого созданы покупки
      * page int - Номер страницы для пагинации
      * limit int [ 0 .. 20 ] - Максимальное количество заказов на странице
+     * statuses array [strings (status): "on_confirmation" "ready_to_ship" "in_transit" "canceled" "delivered"
+     * "on_return" "in_dispute" "closed"] - Статус, по которому нужно получить заказы.
+     *
+     * Статусы:
+     * on_confirmation - ожидает подтверждения
+     * ready_to_ship - ждет отправки
+     * in_transit - в пути
+     * canceled - отменный заказ
+     * delivered - доставлен покупателю
+     * on_return - на возврате
+     * in_dispute - по заказу открыт спор
+     * closed - заказ закрыт
      *
      * @see https://developers.avito.ru/api-catalog/order-management/documentation#operation/getOrders
      * @return Generator<int, AvitoGetOrdersInfoDTO>|false
@@ -88,6 +119,11 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
                 'page' => $this->page,
                 'limit' => 20,
             ];
+
+            if(false === empty($this->status))
+            {
+                $query['statuses'] = [$this->status];
+            }
 
             $response = $this
                 ->TokenHttpClient()

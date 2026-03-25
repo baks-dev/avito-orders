@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2026.  Baks.dev <admin@baks.dev>
+ * Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,50 +23,25 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Avito\Orders\Messenger\Schedules\NewOrders;
+namespace BaksDev\Avito\Orders\Messenger\Schedules\CancelOrders;
 
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 
-final class NewAvitoOrdersScheduleMessage
+final class CancelAvitoOrdersScheduleMessage
 {
-    private bool $deduplicator = true;
-
     /**
      * Идентификатор профиля
      */
-    private readonly string $profile;
+    private string $profile;
 
-    /**
-     * Интервал (если необходимо найти заказы за промежуток времени, не равный указанному в NewOrdersSchedule::INTERVAL)
-     * пример: '3 days'
-     */
-    private ?string $interval;
-
-    public function __construct(UserProfile|UserProfileUid|string $profile, ?string $interval = null)
+    public function __construct(UserProfile|UserProfileUid|string $profile)
     {
         $this->profile = (string) $profile;
-        $this->interval = $interval;
     }
 
     public function getProfile(): UserProfileUid
     {
         return new UserProfileUid($this->profile);
-    }
-
-    public function getInterval(): ?string
-    {
-        return $this->interval;
-    }
-
-    public function disableDeduplicator(): self
-    {
-        $this->deduplicator = false;
-        return $this;
-    }
-
-    public function isDeduplicator(): bool
-    {
-        return $this->deduplicator;
     }
 }

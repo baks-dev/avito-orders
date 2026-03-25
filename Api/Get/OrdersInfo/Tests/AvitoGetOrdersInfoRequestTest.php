@@ -62,7 +62,7 @@ final class AvitoGetOrdersInfoRequestTest extends KernelTestCase
         $AvitoGetOrdersInfoRequest->tokenHttpClient(self::$authorization);
 
         $ordersInfo = $AvitoGetOrdersInfoRequest
-            ->interval('1 day')
+            ->interval('10 days')
             ->findAll();
 
         foreach($ordersInfo as $item)
