@@ -30,7 +30,9 @@ use DateInterval;
 use DateTimeImmutable;
 use Generator;
 use JsonException;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
+#[Autoconfigure(shared: false)]
 final class AvitoGetOrdersInfoRequest extends AvitoApi
 {
     private int $page = 1;
