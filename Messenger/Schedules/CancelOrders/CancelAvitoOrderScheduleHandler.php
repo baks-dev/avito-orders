@@ -88,11 +88,18 @@ final readonly class CancelAvitoOrderScheduleHandler
 
             $orders = $this->AvitoGetOrdersInfoRequest
                 ->forTokenIdentifier($AvitoTokenUid)
+                ->getCanceled()
                 ->findAll();
 
             if(false === $orders || false === $orders->valid())
             {
                 $Deduplicator->delete();
+                continue;
+            }
+
+            /** Если API не работает с Авито Доставкой */
+            if(true === $orders)
+            {
                 continue;
             }
 
@@ -138,7 +145,7 @@ final readonly class CancelAvitoOrderScheduleHandler
                 $this->Logger->critical(
                     sprintf(
                         'avito-orders: Ошибка при отмене заказа %s',
-                        $AvitoGetOrdersInfoDTO->getOrderNumber()
+                        $AvitoGetOrdersInfoDTO->getOrderNumber(),
                     ),
                     [
                         self::class.':'.__LINE__,

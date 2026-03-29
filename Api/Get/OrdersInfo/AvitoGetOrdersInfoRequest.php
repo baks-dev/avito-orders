@@ -100,7 +100,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
      * @see https://developers.avito.ru/api-catalog/order-management/documentation#operation/getOrders
      * @return Generator<int, AvitoGetOrdersInfoDTO>|false
      */
-    public function findAll(): Generator|false
+    public function findAll(): Generator|bool
     {
         $dateTimeNow = new DateTimeImmutable();
 
@@ -142,9 +142,20 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
                 return false;
             }
 
-
             if($response->getStatusCode() !== 200)
             {
+                if($response->getStatusCode() === 403)
+                {
+                    $this->logger->warning(
+                        'avito-orders: Ошибка получения заказов',
+                        [
+                            self::class.':'.__LINE__,
+                            $content,
+                        ]);
+
+                    return true;
+                }
+
                 $this->logger->critical(
                     'avito-orders: Ошибка получения заказов',
                     [

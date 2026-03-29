@@ -147,6 +147,12 @@ final readonly class NewAvitoOrdersScheduleHandler
                 continue;
             }
 
+            /** Если API не работает с Авито Доставкой */
+            if(true === $orders)
+            {
+                continue;
+            }
+
             $this->ordersCreate($orders, $avitoTokenUid, $message->getProfile());
 
             /** Удаляем дедубликатор обновления */
@@ -552,7 +558,7 @@ final readonly class NewAvitoOrdersScheduleHandler
             throw new InvalidArgumentException(
                 sprintf(
                     'Способ доставки не найден! Выполните комманду Upgrade типа %s : ',
-                    $orderDeliveryDTO->getDelivery()
+                    $orderDeliveryDTO->getDelivery(),
                 ),
             );
         }
