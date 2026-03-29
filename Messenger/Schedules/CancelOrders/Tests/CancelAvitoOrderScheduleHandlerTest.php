@@ -27,7 +27,7 @@ namespace BaksDev\Avito\Orders\Messenger\Schedules\CancelOrders\Tests;
 
 use BaksDev\Avito\Orders\Messenger\Schedules\CancelOrders\CancelAvitoOrderScheduleHandler;
 use BaksDev\Avito\Orders\Messenger\Schedules\CancelOrders\CancelAvitoOrdersScheduleMessage;
-use BaksDev\Avito\Orders\UseCase\New\Tests\NewAvitoOrderHandlerTest;
+use BaksDev\Avito\Orders\UseCase\New\Tests\AvitoOrderStatusNewHandlerTest;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use PHPUnit\Framework\Attributes\DependsOnClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -39,7 +39,7 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 #[Group('avito-orders-dispatcher')]
 final class CancelAvitoOrderScheduleHandlerTest extends KernelTestCase
 {
-    #[DependsOnClass(NewAvitoOrderHandlerTest::class)]
+    #[DependsOnClass(AvitoOrderStatusNewHandlerTest::class)]
     public function testDispatcher(): void
     {
         $CancelAvitoOrderScheduleHandler = self::getContainer()->get(CancelAvitoOrderScheduleHandler::class);
