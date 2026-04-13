@@ -111,7 +111,6 @@ final readonly class NewAvitoOrdersScheduleHandler
             return;
         }
 
-
         foreach($tokensByProfile as $avitoTokenUid)
         {
             /**
@@ -174,18 +173,10 @@ final readonly class NewAvitoOrdersScheduleHandler
                     self::class,
                 ]);
 
-
             if($Deduplicator->isExecuted())
             {
                 continue;
             }
-
-            if($avitoGetOrdersInfoDTO->getStatus() !== 'on_confirmation')
-            {
-                $Deduplicator->save();
-                continue;
-            }
-
 
             /**
              * Пропускаем, если заказ уже существует в системе
@@ -423,8 +414,6 @@ final readonly class NewAvitoOrdersScheduleHandler
                     sprintf('Добавили новый заказ %s', $avitoOrderDTO->getPostingNumber()),
                     [self::class.':'.__LINE__],
                 );
-
-                $Deduplicator->save();
             }
         }
     }

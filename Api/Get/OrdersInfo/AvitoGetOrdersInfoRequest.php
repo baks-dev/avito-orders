@@ -41,7 +41,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
 
     private DateInterval $interval;
 
-    private ?string $status = null;
+    private ?array $status = null;
 
     public function interval(DateInterval|string|null $interval): self
     {
@@ -67,7 +67,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
     /** Вызываем метод, если необходимо найти только НОВЫЕ заказы */
     public function getNew(): self
     {
-        $this->status = 'on_confirmation';
+        $this->status = ['on_confirmation'];
         return $this;
     }
 
@@ -75,7 +75,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
     /** Вызываем метод, если необходимо найти только отменённые заказы */
     public function getCanceled(): self
     {
-        $this->status = 'canceled';
+        $this->status = ['canceled'];
         return $this;
     }
 
@@ -124,7 +124,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
 
             if(false === empty($this->status))
             {
-                $query['statuses'] = [$this->status];
+                $query['statuses'] = $this->status;
             }
 
             $response = $this
