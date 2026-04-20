@@ -110,7 +110,7 @@ final class AvitoGetOrdersInfoRequest extends AvitoApi
         {
             // Новые заказы за последние 30 минут (планировщик на каждую минуту)
             $this->fromDate = $dateTimeNow
-                ->sub($this->interval ?? DateInterval::createFromDateString('30 hour'));
+                ->sub($this->interval ?? DateInterval::createFromDateString('1 day'));
         }
 
         while(true)

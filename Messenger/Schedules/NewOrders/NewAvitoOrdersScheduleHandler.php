@@ -136,7 +136,6 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $orders = $this->AvitoGetOrdersInfoRequest
                 ->forTokenIdentifier($avitoTokenUid)
-                ->interval($message->getInterval() ?: NewOrdersSchedule::INTERVAL)
                 ->getNew()
                 ->findAll();
 
