@@ -76,7 +76,7 @@ final class UpdateAvitoOrdersStatusRequest extends AvitoApi
             return true;
         }
 
-        if(false === empty($this->status))
+        if(true === empty($this->status))
         {
             throw new InvalidArgumentException('Invalid Argument Status');
         }

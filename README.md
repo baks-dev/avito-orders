@@ -1,6 +1,6 @@
 # BaksDev Avito Orders
 
-[![Version](https://img.shields.io/badge/version-v7.4.10-blue)](https://github.com/baks-dev/avito-orders/releases)
+[![Version](https://img.shields.io/badge/version-v7.4.11-blue)](https://github.com/baks-dev/avito-orders/releases)
 ![php 8.4+](https://img.shields.io/badge/php-min%208.4-red.svg)
 
 Модуль заказов Avito
