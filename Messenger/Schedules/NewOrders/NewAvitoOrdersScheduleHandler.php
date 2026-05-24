@@ -62,7 +62,7 @@ use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByAr
 use BaksDev\Reference\Currency\Type\Currencies\RUR;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
-use BaksDev\Users\Address\Api\YandexMarketAddressRequest;
+use BaksDev\Users\Address\Api\GeocodeAddressRequest;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormDTO;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormInterface;
@@ -87,7 +87,7 @@ final readonly class NewAvitoOrdersScheduleHandler
         private NewAvitoOrderHandler $AvitoOrderHandler,
         private AvitoTokensByProfileInterface $AvitoTokensByProfile,
         private DeduplicatorInterface $Deduplicator,
-        private YandexMarketAddressRequest $YandexMarketAddressRequest,
+        private GeocodeAddressRequest $GeocodeAddressRequest,
         private UserProfileByIdInterface $UserProfileByIdRepository,
         private UserByUserProfileInterface $UserByUserProfileRepository,
         private ProductConstByArticleInterface $ProductConstByArticleRepository,
@@ -344,7 +344,7 @@ final readonly class NewAvitoOrdersScheduleHandler
              */
             if(false === empty($address))
             {
-                $avitoAddressResult = $this->YandexMarketAddressRequest->getAddress($address);
+                $avitoAddressResult = $this->GeocodeAddressRequest->getAddress($address);
 
                 if(true === empty($avitoAddressResult))
                 {
