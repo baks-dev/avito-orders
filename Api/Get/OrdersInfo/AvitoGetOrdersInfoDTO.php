@@ -140,7 +140,19 @@ final class AvitoGetOrdersInfoDTO
             $this->address = $data['delivery']['terminalInfo']['address'];
         }
 
-        $this->comment = $data['delivery']['serviceName'] ?? null;
+        /** Добавляем комментарий по способу доставки */
+        if(isset($data['delivery']['serviceName']))
+        {
+            if($data['delivery']['serviceType'] === 'cnc')
+            {
+                $this->comment = $data['delivery']['serviceName'];
+            }
+
+            if($data['delivery']['serviceType'] === 'pvz')
+            {
+                $this->comment = $data['delivery']['serviceName'].': '.preg_replace('/.{3}(?=.)/', '$0 ', $this->posting);
+            }
+        }
 
     }
 
