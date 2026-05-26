@@ -76,6 +76,7 @@ use Generator;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
@@ -96,6 +97,7 @@ final readonly class NewAvitoOrdersScheduleHandler
         private CurrentDeliveryEventInterface $currentDeliveryEvent,
         private ExistsOrderNumberInterface $ExistsOrderNumberRepository,
         private PickupByGeolocationInterface $pickupByGeolocation,
+        private ParameterBagInterface $parameter,
     ) {}
 
     public function __invoke(NewAvitoOrdersScheduleMessage $message): void
@@ -291,7 +293,7 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $profile_type = match ($avitoGetOrdersInfoDTO->getType())
             {
-                'pvz' => TypeProfileFbsAvito::class,
+                'pvz', 'ПЭК' => TypeProfileFbsAvito::class,
                 'dbs', 'rdbs' => TypeProfileDbsAvito::class,
                 default => TypeProfilePickupAvito::class,
             };
@@ -308,7 +310,7 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $payment_type = match ($avitoGetOrdersInfoDTO->getType())
             {
-                'pvz' => TypePaymentFbsAvito::class,
+                'pvz', 'ПЭК' => TypePaymentFbsAvito::class,
                 'dbs', 'rdbs' => TypePaymentDbsAvito::class,
                 default => TypePaymentPickupAvito::class,
             };
@@ -325,13 +327,29 @@ final readonly class NewAvitoOrdersScheduleHandler
 
             $delivery_type = match ($avitoGetOrdersInfoDTO->getType())
             {
-                'pvz' => TypeDeliveryFbsAvito::class,
+                'pvz', 'ПЭК' => TypeDeliveryFbsAvito::class,
                 'dbs', 'rdbs' => TypeDeliveryDbsAvito::class,
                 default => TypeDeliveryPickupAvito::class,
             };
 
             $delivery = new DeliveryUid($delivery_type);
             $address = $avitoGetOrdersInfoDTO->getAddress();
+
+            /** Если тип заказа ПВЗ транспортной компании  */
+            if($delivery->equals(TypeDeliveryFbsAvito::TYPE))
+            {
+                /** Адрес доставки для ПЭК */
+                if($avitoGetOrdersInfoDTO->getType() === 'ПЭК')
+                {
+                    $address = $this->parameter->get('AVITO_DELIVERY_PEK') ?: $address;
+                }
+
+                /** Адрес доставки для СДЕК */
+                if($avitoGetOrdersInfoDTO->getType() === 'СДЕК')
+                {
+                    $address = $this->parameter->get('AVITO_DELIVERY_SDEK') ?: $address;
+                }
+            }
 
             $orderDeliveryDTO
                 ->setDelivery($delivery)
@@ -503,7 +521,7 @@ final readonly class NewAvitoOrdersScheduleHandler
                 $orderDeliveryDTO->addField($orderDeliveryFieldDTO);
             }
 
-            /** При самовывозе указываем ПВЗ */
+            /** При самовывозе указываем магазин */
             if($avitoGetOrdersInfoDTO->getType() === 'cnc')
             {
                 $contactsRegion = array_filter($fields, static function($v) {

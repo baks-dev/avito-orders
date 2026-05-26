@@ -119,7 +119,14 @@ final class AvitoGetOrdersInfoDTO
 
         // Способ доставки
         // cnc - Самовывоз от продавца
+        // pvz - Пункт Выдачи Заказов
         $this->type = $data['delivery']['serviceType'] ?? null;
+
+        /** Если доставка ПВЗ - присваиваем какой именно ПВЗ */
+        if($data['delivery']['serviceType'] === 'pvz')
+        {
+            $this->type = $data['delivery']['serviceName'];
+        }
 
 
         /**
