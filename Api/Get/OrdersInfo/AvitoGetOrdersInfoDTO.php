@@ -100,9 +100,11 @@ final class AvitoGetOrdersInfoDTO
         }
 
         /** Постинг - это номер отслеживания, кроме случаев, когда его нет - тогда это идентификатор заказа */
-        $this->number = $data['marketplaceId'];
-        $this->posting = $data['delivery']['trackingNumber'] ?? $data['id'];
+        //$this->number = $data['marketplaceId'];
+        //$this->posting = $data['delivery']['trackingNumber'] ?? $data['id'];
 
+        $this->number = $data['id'];
+        $this->posting = $data['delivery']['trackingNumber'] ?? $data['marketplaceId'];
 
         /**
          * Покупатель

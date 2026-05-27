@@ -81,6 +81,8 @@ final class UpdateAvitoOrdersStatusRequest extends AvitoApi
             throw new InvalidArgumentException('Invalid Argument Status');
         }
 
+        $order = str_replace('A-', '', (string) $order);
+
         /** Собираем в массив и присваиваем в переменную тело запроса */
         $body = [
             'orderId' => (string) $order,
